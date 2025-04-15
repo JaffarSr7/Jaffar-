@@ -1,0 +1,93 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyNjUFNB52wcxUZiVWhxARyD",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/JaffarSr7/Jaffar-/blob/main/7\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# STEP 1: Install Required Libraries\n",
+        "!pip install -q PyMuPDF langchain-google-genai google-generativeai\n",
+        "\n",
+        "# STEP 2: Import Libraries\n",
+        "import fitz  # PyMuPDF\n",
+        "import os\n",
+        "import google.generativeai as genai\n",
+        "from langchain_google_genai import ChatGoogleGenerativeAI\n",
+        "from langchain.prompts import PromptTemplate\n",
+        "from langchain.chains import LLMChain\n",
+        "from google.colab import files\n",
+        "\n",
+        "# STEP 3: Upload Resume PDF\n",
+        "uploaded = files.upload()\n",
+        "resume_path = next(iter(uploaded))  # get the filename\n",
+        "\n",
+        "# STEP 4: Extract Text from PDF\n",
+        "def extract_text_from_pdf(path):\n",
+        "    doc = fitz.open(path)\n",
+        "    text = \"\"\n",
+        "    for page in doc:\n",
+        "        text += page.get_text()\n",
+        "    return text\n",
+        "\n",
+        "resume_text = extract_text_from_pdf(resume_path)\n",
+        "\n",
+        "# STEP 5: Authenticate Gemini\n",
+        "genai.configure(api_key=\"AIzaSyCxIxRzoM8fMmYISBEyEvKdD2-Ien7PQqs\")  # Get key from https://makersuite.google.com/app/apikey\n",
+        "\n",
+        "# STEP 6: Setup LangChain with Gemini\n",
+        "llm = ChatGoogleGenerativeAI(model=\"gemini-pro\", temperature=0.3)\n",
+        "\n",
+        "# STEP 7: Define Prompt\n",
+        "prompt = PromptTemplate(\n",
+        "    input_variables=[\"resume\"],\n",
+        "    template=\"\"\"\n",
+        "You are an AI career expert. Analyze the following resume text and give a detailed feedback\n",
+        "including skills match, structure, clarity, and improvements:\n",
+        "\n",
+        "Resume:\n",
+        "{resume}\n",
+        "\n",
+        "Feedback:\n",
+        "\"\"\"\n",
+        ")\n",
+        "\n",
+        "# STEP 8: Run the LLMChain\n",
+        "chain = LLMChain(llm=llm, prompt=prompt)\n",
+        "feedback = chain.run(resume=resume_text)\n",
+        "\n",
+        "# STEP 9: Output the Feedback\n",
+        "print(\"Resume Feedback:\\n\")\n",
+        "print(feedback)"
+      ],
+      "metadata": {
+        "id": "xRsRdJasoEdt"
+      },
+      "execution_count": null,
+      "outputs": []
+    }
+  ]
+}
